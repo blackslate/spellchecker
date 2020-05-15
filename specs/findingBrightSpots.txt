@@ -1,0 +1,228 @@
+When we show a new phrase, it:
+* Separates the first underscored section as the required input
+* Removes all underscores
+* Replaces spaces in the required input with &nbpsp;, so that the feedback span will not wrap to a new line
+* Creates a double-level layout, with the input field over the feedback span.
+* Remembers the width of the feedback span, even when it is "empty"
+  (it will contain a &nbsp; when empty so that its background color appears)
+* Empties the input field
+=====
+When we type in the input field, it:
+
+* Counts how many letters have been input
+* Compares that many letters of this.expected, letter by letter
+  - Consider the error state to be undefined
+  - Set ii = jj - 0
+  - Consider next letter in each source
+  - Set error state to expected[0] !== input[0]
+  - Create empty span for this new error state
+  - If no error
+    - Add the first letter
+    Else:
+    - Compare expected [1] with input[0]
+    - If match
+      - Compare expected[0] with input[1]
+      - If match, create <span class="flip">{input[0:1]}</span>
+      - If not
+        - Greate <span class="MISS">…</span>
+        - Start new span with r[jj]
+
+    - Else // e[ii] !== r[jj] && e[ii+1] !== r[jj]
+      - Compare e[ii] with r[jj + 1]
+      - If match, create <span class="ADD">r[jj]</span>
+        - jj += 1
+        - Start new span with r[jj]
+      - If not: SWAP
+
+  - Increment ii and jj
+
+
+TODO:
+* Handle cases like "[side] by [side]" where the user will type in one place and see input in two places.
+
+
+
+abcde
+a
+ba
+…b
+xa
+
+GOOD
+MISSing
+ADDed
+SWAPed
+FLIPped
+
+The LCS gives me the list of all letters that appear in the correct order. If the user has inverted letters, the second letter(which should appear first) is excluded from the LCS.
+
+Strings of consecutive letters in the LCS can be considered "good", but the way that they are grouped can be arbitrary, if the same group appears more than once, like in "banana" or "mississippi". "sisip"
+
+LSS gives us the longest continuous string. There may be two or more substrings of equal length; it gives us the first. We can cut the strings at the end of the first long sequence, and look for the next biggest, which might be of the same length. We can cut the strings before the longest, and see if there are any shorter ones before it.
+
+In other words: we split the phrase into three:
+before + lss + after
+
+For both before and after, we split again into 3, until no lss is found, in which case the lss will be ""
+
+We create an array containing expected and input.
+We find the lss for the first item.
+
+{ chunk: "snth", start: 0 }
+
+Each long chunk will be preceded and followed by a mismatched character or ^|$
+??Xchunk#??
+
+We create an array, where we split before and after into arrays until...
+
+  [[before, <span>lss</span>, after], <span>lss</span>, after]
+
+a) lss for a given before or after is not found
+   in which case lss.length = 0 (and indexOf is 0)
+b) lss is the entire string (before and after are "")
+
+There will always be at least one wrong between two lss spans, but it may be an empty string, because the input was missing a letter.
+
+
+  [ [ <span class="wrong">a</span>
+    , <span>lss</span>
+    , [ <span class="wrong">b</span>
+      , <span>lss</span>
+      , <span class="wrong">c</span>
+      ]
+    ]
+  , <span>lss</span>
+  , ""
+  ]
+
+There may not be a wrong at the beginning or the end.
+
+Now, the wrongs may be of different types:
+
+* Empty = text missing in input
+* Single character ....
+
+
+We don't create spans yet. First we create the before, lss, after nested arrays, for both input and expected.
+
+If lss is "", we just retain the complete string.
+
+abcdefghijklmnopqrs
+abcedfyhjkqlmnopsqr
+
+["abcdefghijk", lmnop, "qrs"]
+["abcedfyhjkq",   lmnop, "sqr"]
+
+
+[["", "abc", "defghijk"], lmnop, "qrs"]
+[["", "abc", "edfyhjkq"],   lmnop, "sqr"]
+
+[["", "abc", ["defghijk"]], lmnop, "qrs"]
+[["", "abc", ["edfyhjkq"]],   lmnop, "sqr"]
+
+[["", "abc", ["defghi", "jk", ""]], lmnop, "qrs"]
+[["", "abc", ["edfyh", "jk", "q"]],   lmnop, "sqr"]
+
+[["", "abc", [["defghi"], "jk", ""]], lmnop, "qrs"]
+[["", "abc", [["edfyh"], "jk", "q"]],   lmnop, "sqr"]
+
+[["", "abc", [["defghi"], "jk", ""]], lmnop, ["", "qr", "s"]]
+[["", "abc", [["edfyh"], "jk", "q"]],   lmnop, ["s", "qr", ""]]
+
+"" and "" are the same and empty. Ignore
+"abc" and "abc" are the same => <span>abc</span>
+"defghi" and "edfyh" are the different => further treatment
+"lmnop" and "lmnop" are the same => <span>lmnop</span>
+
+The "s" after and befores are the same, so we have inversion.
+
+
+defghi
+edfyh
+
+de
+ed inversion
+
+fgh
+fyh substitution
+
+"i"
+""   omission
+
+""
+"q"  insertion?
+
+
+If the lss is one letter long, but the input and expected are more than one letter, then there may be
+
+
+
+We can start by putting all the letters in alphabetical order, and then filtering out the letters that are different. Any letters that are different are bound to be borders of wrongness. They will not be included in any lss.
+
+No lss longer than 1 means that we can mark one letter right... but perhaps there are more that we can find by lcs.
+
+If input and expected are both of length 2, then
+* If they start or end the same, there is substitution
+* Else check for inversion. (There can't be any other better solution)
+
+If one is shorter than 2, there is insertion.
+
+They can't both be shorter, otherwise they match and should be part of a longer lss.
+
+If one is longer than 2, check for lcs. If this only contains one letter, we have a real single-letter lss and junk (before or after).
+
+If the lcs contains more than one letter, then there are boundaries at the elements of the lcs.
+
+defghi
+edfyh
+=> efh
+
+The simplest solution would be to mark the lcs letters correct, but this might miss inversions.
+
+We find "e" in both strings, and compare the letters before and after
+
+In this case...
+defghi
+fedyh
+=> eh
+... we get "def" <=> "fed". We can have
+
+* No inversions
+* One inversion
+* A double inversion
+
+We will never have to choose between "de" and "ef"; we treat them together. We can't have bigger inversions, because ...
+
+abcd
+ dcba
+
+Actually, we can, but that's beginning to look like random chance.
+
+So: first pass = look for inversions and remove them from the string.
+
+
+Lets stop at lcs for now.
+
+Hmm. My aim is to make it as easy as possible to correct. The user should be able to select an error chunk, correct it and then click on the next error chunk and correct it.
+
+Question: is it better to fix an error or to spell the whole word correctly?
+
+Answer: If it's just a case of forgetting a ь at the end of a long word, then it's better to focus on precise correction needed than to fill the brain with concern about the order of all the other letters.
+
+So. Dividing FED|Y|h|‸ into 4 sections with (different) colours could be helpful. The alternative is F|e|DY|h|‸, where the DY error is badly defined.
+
+OK, so let's stop at checking for 3-letter inversion
+
+You can only find swaps in the expected letters. The received letters might be garbage, so their order is not important. If there is more than one swap, they
+
+
+Right. Adding in a caret makes the input longer than what the user typed, so we need to change the
+
+
+Здрваствуйте
+
+* If one or more letters are missing:
+  add | (red)
+* If one or more letters are different from what is expected, regardless of whether there are too many letters or too few:
+  fix (purple)
+* If there are one or more letters too many, with all the surrounding letters present
