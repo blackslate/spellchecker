@@ -26,10 +26,6 @@ export const StyledPhrase = styled.p`
   font-family: ${fontFamily};
   pointer-events: none;
 
-  & span {
-    opacity: ${props => props.opacity};
-  }
-
   & span.cloze {
     ${props => props.width
              ?  `width: ${props.width}px;

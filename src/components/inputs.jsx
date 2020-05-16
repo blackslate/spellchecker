@@ -97,7 +97,6 @@ export class FeedBack extends Component {
     return (
       <StyledPhrase
         id="front"
-        opacity="1"
         width={width}
       >
         <span>{start}</span>

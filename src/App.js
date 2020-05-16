@@ -55,8 +55,8 @@ class App extends Component {
     const start    = match.shift()// spaces will be between spans
     const end      = match.pop().replace(/[_\s]+/g, " ").trim()
     const expected = match.shift()
-                         .replace(/[_\s]+/g, " ") // << nbsp
-                         .trim()
+                          .replace(/[_\s]+/g, " ") // << nbsp
+                          .trim()
     const cloze = "" // <span>{expected}</span>
     const data = {
       phrase
@@ -81,7 +81,7 @@ class App extends Component {
       // console.log("phrase data:", data)
       return data
     }
-      
+
     this.setState(data)
   }
 
