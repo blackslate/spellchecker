@@ -31,75 +31,56 @@ export const TargetPhrase = (props) => (
 
 export const Answer = (props) => (
    <StyledDiv>
+    <Input
+      width={props.phrase.width}
+      start={props.phrase.start}
+      cloze={props.phrase.cloze}
+      end={props.phrase.end}
+      value={props.phrase.input}
+      change={props.change}
+      keyDown={props.keyDown}
+    />
     <FeedBack
       start={props.phrase.start}
       cloze={props.phrase.cloze}
       end={props.phrase.end}
       width={props.phrase.width}
-      size={props.size}
+      text={props.phrase.cloze}
     />
-    <Input
-      width={props.phrase.width}
-      start={props.phrase.start}
-      end={props.phrase.end}
-      change={props.change}
+    <WidthHolder
+      textToCheck={props.phrase.textToCheck}
+      size={props.size}
     />
   </StyledDiv>
 )
 
 
 
-export class FeedBack extends Component {
-
+export class Input extends Component {
   render() {
     const error = Array.isArray(this.props.cloze)
                 ? this.props.cloze.length !== 1
                 : false
     const correct = Array.isArray(this.props.cloze)
                  && this.props.cloze.correct
-    let { start, cloze, end, size, width } = this.props
-    // cloze = width ? " " : cloze
-    return (
-      <StyledPhrase
-        id="back"
-        opacity="1"
-        width={width}
-      >
 
-        <span>{start}</span>
-        <StyledFeedback
-          className="cloze"
-          ref={size}
-          error={error}
-          correct={correct}
-        >
-          {cloze}
-        </StyledFeedback>
-        <span>{end}</span>
-      </StyledPhrase>
-    )
-  }
-}
-
-
-export class Input extends Component {
-  render() {
     if (!this.props.width) {
       return ""
     }
 
     return (
       <StyledPhrase
-
-        id="front"
-        opacity="0.25"
+        id="back"
       >
         <span>{this.props.start}</span>
         <StyledInput
-          className="cloze"
-
+          className="input"
+          error={error}
+          correct={correct}
+          value={this.props.value}
           width={this.props.width}
           onChange={this.props.change}
+          onKeyDown={this.props.keyDown}
         />
         <span>{this.props.end}</span>
       </StyledPhrase>
@@ -109,38 +90,78 @@ export class Input extends Component {
 
 
 
-export const Add = () => {
-  return (
-    <StyledAdd />
-  )
+export class FeedBack extends Component {
+  render() {
+    const { start, text, end, width } = this.props
+
+    return (
+      <StyledPhrase
+        id="front"
+        opacity="1"
+        width={width}
+      >
+        <span>{start}</span>
+        <StyledFeedback
+          className="cloze"
+        >
+          {text}
+        </StyledFeedback>
+        <span>{end}</span>
+      </StyledPhrase>
+    )
+  }
 }
 
 
 
-export const Cut = (props) => {
-  return (
-    <StyledCut>
-      {props.children}
-    </StyledCut>
-  )
-}
+export const Add = () => (
+  <StyledAdd />
+)
 
 
 
-export const Fix = (props) => {
-  return (
-    <StyledFix>
-      {props.children}
-    </StyledFix>
-  )
-}
+export const Cut = (props) => (
+  <StyledCut>
+    {props.children}
+  </StyledCut>
+)
 
 
 
-export const Flip = (props) => {
-  return (
-    <StyledFlip>
-      {props.children}
-    </StyledFlip>
-  )
+export const Fix = (props) => (
+  <StyledFix>
+    {props.children}
+  </StyledFix>
+)
+
+
+
+export const Flip = (props) =>  (
+  <StyledFlip>
+    {props.children}
+  </StyledFlip>
+)
+
+
+
+class WidthHolder extends Component {
+  render() {
+    const { size, textToCheck } = this.props
+    // console.log(("expected:", expected))
+
+    return (
+      <StyledFeedback
+        className="width-holder"
+        ref={size}
+        hidden={true}
+      >
+        {textToCheck}
+      </StyledFeedback>
+    )
+  }
+
+
+  componentDidUpdate() {
+    this.props.size()
+  }
 }

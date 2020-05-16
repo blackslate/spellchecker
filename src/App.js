@@ -16,10 +16,10 @@ class App extends Component {
   constructor(props) {
     super(props)
 
-    this.newPhrase = this.newPhrase.bind(this)
+    this.newPhrase   = this.newPhrase.bind(this)
+    this.checkSize   = this.checkSize.bind(this)
+    this.onKeyDown   = this.onKeyDown.bind(this)
     this.updateInput = this.updateInput.bind(this)
-    this.getSize = this.getSize.bind(this)
-    this.width = "100"
 
     // regex will match the first group of words that are linked
     // together_with_underscores or which form a sequence of words _all
@@ -29,7 +29,7 @@ class App extends Component {
     this.regex  = /(.*?)((\w+(?=_))?(_([^\s,;:.?!]*))+)(.*)/
 
     const startUp      = true
-    const phrase       = "Я сказал «_Здравствуйте!»"
+    const phrase       = "Hello _world" //"Я сказал «_Здравствуйте!»"
     const initialState = this.treatPhrase(phrase, startUp)
     this.state         = initialState
   }
@@ -39,13 +39,6 @@ class App extends Component {
     const phrase = event.target.value
     this.setState({ phrase })
     this.treatPhrase(phrase)
-  }
-
-
-  updateInput(event) {
-    const input = event.target.value
-    this.setState({ input })
-    this.treatInput(input)
   }
 
 
@@ -59,40 +52,62 @@ class App extends Component {
     match.shift() // lose the full match
     // console.log("match:", match)
 
-    const start   = match.shift()// spaces will be between spans
-    const end     = match.pop().replace(/[_\s]+/g, " ").trim()
-    this.expected = match.shift()
+    const start    = match.shift()// spaces will be between spans
+    const end      = match.pop().replace(/[_\s]+/g, " ").trim()
+    const expected = match.shift()
                          .replace(/[_\s]+/g, " ") // << nbsp
                          .trim()
-    const cloze = <span>{this.expected}</span>
+    const cloze = "" // <span>{expected}</span>
     const data = {
       phrase
     , start
     , cloze
     , end
-    , getSize: true
+    , expected
+    , textToCheck: expected
+    , fromNewPhrase: true
+    , input: ""
+    , width: 0
     }
     // console.log( "\""
     //            + start
-    //            + this.expected
+    //            + this.state.expected
     //            + end
     //            + "\""
     //            )
 
     if (startUp) {
       // Don't setState on startUp
+      // console.log("phrase data:", data)
       return data
-    } else {
-      this.setState(data)
     }
+      
+    this.setState(data)
+  }
 
-    this.setSize()
+
+  onKeyDown(event) {
+    this.input = event.target.value
+  }
+
+
+  updateInput(event) {
+    const input = event.target.value
+
+    this.setState({
+      input
+    , textToCheck: input
+    })
+
+    this.treatInput(input)
   }
 
 
   treatInput(input) {
-    let expectedOutput = [this.expected.toLowerCase()
-                                       .replace(/ /g, " ")
+    console.log("treat input:", input)
+    console.log("t่his.state:", this.state)
+    let expectedOutput = [this.state.expected.toLowerCase()
+                                             .replace(/ /g, " ")
                          ]
     let receivedOutput = [input.toLowerCase()]
 
@@ -140,7 +155,6 @@ class App extends Component {
         splitStrings(expectedArray, receivedArray, lss)
       }
     }
-
 
 
     const splitStringAt = (chunk, array, toTreat) => {
@@ -259,7 +273,7 @@ class App extends Component {
     expectedOutput = flatten(expectedOutput)
     receivedOutput = flatten(receivedOutput)
 
-    // restoreCase(expectedOutput, this.expected)
+    // restoreCase(expectedOutput, this.state.expected)
     restoreCase(receivedOutput, input)
 
     // console.log("expected flattened:", expectedOutput)
@@ -271,6 +285,7 @@ class App extends Component {
     receivedOutput.forEach((chunk, index) => {
       const key = index + chunk
       const expected = expectedOutput[index]
+
       if (chunk.toLowerCase() === expected) {
           if (chunk) { // ignore empty items
           cloze.push(<span
@@ -302,34 +317,56 @@ class App extends Component {
       }
     })
 
-    cloze.correct = input.length === this.expected.length
+    cloze.correct = input.length === this.state.expected.length
                  && cloze.length === 1
 
     this.setState({ cloze })
   }
 
 
-  getSize(span){
-    console.log("Getting size")
-    if (!this.state.getSize) {
-      console.log("this never happens")
-      return
+  /**
+   * checkSize is called a first time as the `ref` of the
+   * WidthHolder component. For this first call, the `span`
+   * argument will contain the actual DOM element, so we capture that
+   * and store it in `this.span`, because we won't get a second
+   * chance.
+   *
+   * Subsequent calls are sent from WidthHolder's componentDidUpdate
+   * method, which has no direct access to the DOM element itself, so
+   * we need to use the stored `this.span`
+   *
+   * We need to check that either the width or the current value of
+   * `this.input`, because if we reset this.state.width or
+   * this.state.input to their current values, React will trigger a
+   * new render, endlessly.
+   */
+  checkSize(span){
+    if (span && !this.span) {
+      this.span = span
     }
-
-    this.span = span
-    this.setSize(span)
+    this.setWidth()
   }
 
 
-  setSize(span=this.span) {
-    // span.style.display = "inline"
-    const width   = span.getBoundingClientRect().width + 1
-    // span.style.display = "inline-block"
-    // span.style.width = width + "px"
-    const getSize = false
-    const cloze   = " "
-    this.setState({ width, getSize, cloze })
-    console.log("width:", width)
+  setWidth() {
+    const width = this.span.getBoundingClientRect().width + 1
+
+    console.log("setWidth:", width)
+
+    if (this.state.width !== width){
+      if (this.state.fromNewPhrase) {
+        this.setState({
+          width
+        , fromNewPhrase: false
+        })
+
+      } else if (width > this.state.width) {
+        if (this.state.input !== this.input) {
+          this.setState({ input: this.input })
+          this.treatInput(this.input)
+        }
+      }
+    }
   }
 
 
@@ -343,8 +380,9 @@ class App extends Component {
         />
         <Answer
           phrase={this.state}
-          size={this.getSize}
+          size={this.checkSize}
           change={this.updateInput}
+          keyDown={this.onKeyDown}
         />
       </div>
     )

@@ -24,6 +24,7 @@ export const StyledPhrase = styled.p`
   left: 0;
   font-size: ${fontSize};
   font-family: ${fontFamily};
+  pointer-events: none;
 
   & span {
     opacity: ${props => props.opacity};
@@ -47,19 +48,42 @@ export const StyledInput = styled.input.attrs(props => ({
   margin: 0;
   padding: 0;
   border: none;
-  background: transparent;
-  opacity: 0.2;
-`
-
-
-export const StyledFeedback = styled.span`
-  display: inline-block;
+  pointer-events: auto;
   background-color: ${props => props.error
                              ? "#fee"
                              : props.correct
                                ? "#dfd"
                                : "#ddf"
                      };
+`
+
+
+export const StyledFeedback = styled.span`
+  display: inline-block;
+  font-size: ${fontSize};
+  font-family: ${fontFamily};
+  white-space: pre;
+
+  /* Let input element behind show its cursor and receive mouse and
+   * touch events
+   */
+  background: transparent;
+  pointer-events: none;
+
+  /* vertical-align counteracts baseline effect of overflow: hidden
+   * See the last line here:
+   * https://www.w3.org/TR/CSS2/visudet.html#leading
+   */
+  vertical-align: top;
+  overflow: hidden;
+
+  /* WidthHolder has hidden: true, but FeedBack does not */
+  ${props => props.hidden
+           ? `height: 0;
+              position: absolute;
+             `
+           : ''
+   }
 `
 
 

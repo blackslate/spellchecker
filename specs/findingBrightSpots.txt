@@ -226,3 +226,6 @@ Right. Adding in a caret makes the input longer than what the user typed, so we 
 * If one or more letters are different from what is expected, regardless of whether there are too many letters or too few:
   fix (purple)
 * If there are one or more letters too many, with all the surrounding letters present
+
+
+When the phrase changes, we need to populate the Feedback span with the answer, in order to find out how wide it should be. However, the Feedback span only calls its ref at the moment of its creation, when we have just set its innerText.
