@@ -102,15 +102,18 @@ export const StyledAdd = styled.span`
 
 
 export const StyledCut = styled.span`
+  display:inline-block;
   color: #f00;
 `
 
 
 export const StyledFix = styled.span`
+  display:inline-block;
   color: #f09;
 `
 
 
 export const StyledFlip = styled.span`
+  display:inline-block;
   color: #f60;
 `

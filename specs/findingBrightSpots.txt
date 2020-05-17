@@ -229,3 +229,22 @@ Right. Adding in a caret makes the input longer than what the user typed, so we 
 
 
 When the phrase changes, we need to populate the Feedback span with the answer, in order to find out how wide it should be. However, the Feedback span only calls its ref at the moment of its creation, when we have just set its innerText.
+
+
+If errors are shown in real-time, the Input field and its overlay Feedback need to be the same width and Input must not scroll. This means that certain errors, like inputting a wider character, can make it impossible to type all the letters in a word.
+
+If the errors are to be shown only when the user presses a Submit button, then wider input should be allowed, but not more letters. In this case, we can use max-length to limit input. However, when the Feedback element is shown, certain (parts of) the entered text may not be visible. In this case, we need to show the expected text with highlighting for where the user was wrong.
+
+Missing letters can be red (not |)
+Mistaken letters can be purple
+Inverted letters can be orange
+Added letters can be ignored?
+
+ToDo: show
+
+Lingvist allows any number of characters in input, and scrolls happily, since all extra characters will be deleted.
+
+If the user inputs letters in uppercase that are expected in lowercase, then they are likely to be wider. If the space available is limited, then you won't be able to enter all the letters. Currently, the check is case insensitive, so there is no way to indicate that an uppercase letter is "wrong". One solution would be to apply the expected case if the letters match the expected phrase.
+You would then type in any case, and the correct case would appear automatically. If we are showing corrections as you type this could be ok.
+
+Alternatively, we could extend the Input field if the data entered is too big, but that will push the end of the sentence to the right.

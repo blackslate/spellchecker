@@ -104,8 +104,8 @@ class App extends Component {
 
 
   treatInput(input) {
-    console.log("treat input:", input)
-    console.log("t่his.state:", this.state)
+    // console.log("treat input:", input)
+    // console.log("t่his.state:", this.state)
     let expectedOutput = [this.state.expected.toLowerCase()
                                              .replace(/ /g, " ")
                          ]
@@ -273,6 +273,9 @@ class App extends Component {
     expectedOutput = flatten(expectedOutput)
     receivedOutput = flatten(receivedOutput)
 
+    // console.log("ex",expectedOutput)
+    // console.log("in",receivedOutput)
+
     // restoreCase(expectedOutput, this.state.expected)
     restoreCase(receivedOutput, input)
 
@@ -351,7 +354,7 @@ class App extends Component {
   setWidth() {
     const width = this.span.getBoundingClientRect().width + 1
 
-    console.log("setWidth:", width)
+    // console.log("setWidth:", width)
 
     if (this.state.width !== width){
       if (this.state.fromNewPhrase) {
