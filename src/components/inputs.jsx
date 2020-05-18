@@ -95,12 +95,14 @@ export class Answer extends Component {
 
 class Feedback extends Component{
   render() {
+    const { size, has_space, cloze } = this.props
+    // console.log(size, has_space, cloze)
     return (
       <StyledFeedback
         className="cloze"
-        ref={this.props.size}
+        ref={size}
       >
-        {this.props.cloze}
+        {cloze}
       </StyledFeedback>
     )
   }
@@ -121,7 +123,9 @@ export const Add = () => (
 
 
 export const Cut = (props) => (
-  <StyledCut>
+  <StyledCut
+    has_space={props.has_space}
+  >
     {props.children}
   </StyledCut>
 )
@@ -129,7 +133,9 @@ export const Cut = (props) => (
 
 
 export const Fix = (props) => (
-  <StyledFix>
+  <StyledFix
+    has_space={props.has_space}
+  >
     {props.children}
   </StyledFix>
 )
@@ -137,7 +143,9 @@ export const Fix = (props) => (
 
 
 export const Flip = (props) =>  (
-  <StyledFlip>
+  <StyledFlip
+    has_space={props.has_space}
+  >
     {props.children}
   </StyledFlip>
 )

@@ -248,3 +248,6 @@ If the user inputs letters in uppercase that are expected in lowercase, then the
 You would then type in any case, and the correct case would appear automatically. If we are showing corrections as you type this could be ok.
 
 Alternatively, we could extend the Input field if the data entered is too big, but that will push the end of the sentence to the right.
+
+
+We calculate an initial value for cloze and refresh the Feedback element with this value, and obtain its width as this.state.minWidth. Then we set cloze to a span with only &nbsp; and calculate its width as this.state.width

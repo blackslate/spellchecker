@@ -30,7 +30,7 @@ class App extends Component {
     this.zeroWidthSpace = "​" // "&#x200b;"
 
     const startUp      = true
-    const phrase       = "Hello _world" //"Я сказал «_Здравствуйте!»"
+    const phrase       = "Here's a_word_that_you can test"
     const initialState = this.treatPhrase(phrase, startUp)
     this.state         = initialState
   }
@@ -228,12 +228,14 @@ class App extends Component {
     }
 
 
-    const treatFix = (received, expected, key, cloze) => {
+    const treatFix = (received, expected, key, cloze, hasSpace) => {
+
       if ( expected[0] === received[1]
         && expected[1] === received[0]
          ) {
         cloze.push(<Flip
           key={key}
+          has_space={hasSpace}
         >{received}</Flip>)
 
         return
@@ -241,7 +243,9 @@ class App extends Component {
 
       cloze.push(<Fix
         key={key}
+        has_space={hasSpace}
       >{received}</Fix>)
+
     }
 
 
@@ -294,6 +298,7 @@ class App extends Component {
     receivedOutput.forEach((chunk, index) => {
       const key = index + chunk
       const expected = expectedOutput[index]
+      const hasSpace = (chunk !== chunk.replace(/ /g, "")) + 0
 
       if (chunk.toLowerCase() === expected) {
           if (chunk) { // ignore empty items
@@ -305,12 +310,14 @@ class App extends Component {
       } else if (chunk.flip) {
         cloze.push(<Flip
           key={key}
+          has_space={hasSpace}
         >{chunk}</Flip>)
 
       } else if (!chunk) {
         if (expected && index !== lastIndex) {
           cloze.push(<Add
-          key={key}
+            key={key}
+            has_space={hasSpace}
           />)
         } // else both input and expected are "", for the last item
         // TODO: Set a timeout so that index !== lastIndex is ignored
@@ -319,10 +326,11 @@ class App extends Component {
       } else if (!expected) {
         cloze.push(<Cut
           key={key}
+          has_space={hasSpace}
         >{chunk}</Cut>)
 
       } else {
-        treatFix(chunk, expected, key, cloze)
+        treatFix(chunk, expected, key, cloze, hasSpace)
       }
     })
 
@@ -337,6 +345,8 @@ class App extends Component {
     if (!cloze.length) {
       cloze = [this.zeroWidthSpace]
     }
+
+    console.log(cloze.map(item => JSON.stringify(item.props)))
 
     this.setState({ cloze, error, correct })
   }

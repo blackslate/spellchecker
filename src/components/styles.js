@@ -7,12 +7,13 @@ const colors = {
   normal:  "#ddf"
 , error:   "#fee"
 , correct: "#dfd"
+, spaceHighlight:   "#fff"
 , normalHighlight:  "#ccf"
 , errorHighlight:   "#fcc"
 , correctHighlight: "#9c9"
 , add:     "#f00"
 , cut:     "#f00"
-, fix:     "#f09"
+, fix:     "#90f" // #f09"
 , flip:    "#f60"
 }
 
@@ -59,9 +60,11 @@ export const StyledInput = styled.input.attrs(props => ({
   left: 0;
 
   width: 100%;
+
   margin: 0;
   padding: 0;
   border: none;
+
   background-color: ${props => props.error
                              ? colors.error
                              : props.correct
@@ -105,6 +108,10 @@ export const StyledAdd = styled.span`
   height:0.7em;
   box-shadow:0px 0 0 2px ${colors.add};
   position:relative;
+  ${props => props.has_space
+           ? `background-color: ${colors.spaceHighlight};`
+           : ""
+   }
 
   &:after {
     content: "^";
@@ -123,16 +130,28 @@ export const StyledAdd = styled.span`
 export const StyledCut = styled.span`
   display:inline-block;
   color: ${colors.cut};
+  ${props => props.has_space
+           ? `background-color: ${colors.spaceHighlight};`
+           : ""
+   }
 `
 
 
 export const StyledFix = styled.span`
   display:inline-block;
   color: ${colors.fix};
+  ${props => props.has_space
+           ? `background-color: ${colors.spaceHighlight};`
+           : ""
+   }
 `
 
 
 export const StyledFlip = styled.span`
   display:inline-block;
   color: ${colors.flip};
+  ${props => props.has_space
+           ? `background-color: ${colors.spaceHighlight};`
+           : ""
+   }
 `
