@@ -16,10 +16,11 @@ class App extends Component {
   constructor(props) {
     super(props)
 
-    this.newPhrase   = this.newPhrase.bind(this)
-    this.checkSize   = this.checkSize.bind(this)
-    this.onKeyDown   = this.onKeyDown.bind(this)
-    this.updateInput = this.updateInput.bind(this)
+    this.newPhrase    = this.newPhrase.bind(this)
+    this.checkSize    = this.checkSize.bind(this)
+    this.onKeyDown    = this.onKeyDown.bind(this)
+    this.updateInput  = this.updateInput.bind(this)
+    this.refreshInput = this.refreshInput.bind(this)
 
     // regex will match the first group of words that are linked
     // together_with_underscores or which form a sequence of words _all
@@ -27,12 +28,15 @@ class App extends Component {
     // included in the match. Subsequent underscores will be silently
     // ignored and removed or replaced by spaces.
     this.regex  = /(.*?)((?:\w+(?=_))?(?:_(?:[^\s,;:.?!]*))+)(.*)/
-    this.zeroWidthSpace = "​" // "&#x200b;"
 
-    const startUp      = true
-    const phrase       = "Here's a_word_that_you can test"
-    const initialState = this.treatPhrase(phrase, startUp)
-    this.state         = initialState
+    this.zeroWidthSpace = "​" // "&#x200b;"
+    this.timeout        = 0
+    this.lastIndexDelay = 1000
+
+    const startUp       = true
+    const phrase        = "Here's a_word_that_you can test"
+    const initialState  = this.treatPhrase(phrase, startUp)
+    this.state          = initialState
   }
 
 
@@ -98,11 +102,20 @@ class App extends Component {
 
     this.setState({ input })
 
-    this.treatInput(input)
+    clearTimeout(this.timeout)
+    this.timeout = setTimeout(this.refreshInput, this.lastIndexDelay)
+
+    this.treatInput(input, true)
   }
 
 
-  treatInput(input) {
+  refreshInput() {
+    console.log("refresh input")
+    this.treatInput(this.state.input, false)
+  }
+
+
+  treatInput(input, ignoreLastIndex) {
     // console.log("treat input:", input)
     // console.log("t่his.state:", this.state)
 
@@ -292,7 +305,7 @@ class App extends Component {
     // console.log("expected flattened:", expectedOutput)
     // console.log("received flattened:", receivedOutput)
 
-    const lastIndex = receivedOutput.length - 1
+    const lastIndex = receivedOutput.length - ignoreLastIndex
     let cloze = []
 
     receivedOutput.forEach((chunk, index) => {
@@ -301,7 +314,7 @@ class App extends Component {
       const hasSpace = (chunk !== chunk.replace(/ /g, "")) + 0
 
       if (chunk.toLowerCase() === expected) {
-          if (chunk) { // ignore empty items
+        if (chunk) { // ignore empty items
           cloze.push(<span
             key={key}
           >{chunk}</span>)

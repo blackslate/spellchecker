@@ -106,7 +106,7 @@ export const StyledFeedback = styled.span`
 export const StyledAdd = styled.span`
   display:inline-block;
   height:0.7em;
-  box-shadow:0px 0 0 2px ${colors.add};
+  box-shadow:0px 0 0 1px ${colors.add};
   position:relative;
   ${props => props.has_space
            ? `background-color: ${colors.spaceHighlight};`
