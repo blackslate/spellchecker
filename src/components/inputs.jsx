@@ -15,6 +15,8 @@ import { StyledDiv
        , StyledCut
        , StyledFix
        , StyledFlip
+       , StyledToggle
+       , StyledSubmit
        } from './styles'
 
 
@@ -30,6 +32,14 @@ export const TargetPhrase = (props) => (
       placeholder="Enter a target phrase to test"
       onChange={props.newPhrase}
       value={props.phrase}
+    />
+    <Toggle 
+      setMode={props.setMode}
+      checked={props.checked}
+    />
+    <Submit   
+      submit={props.submit}
+      checked={props.checked}
     />
   </StyledDiv>
 )
@@ -51,12 +61,15 @@ export class Answer extends Component {
           , width
           , error
           , correct
+          , requireSubmit
           } = this.props.phrase
     const { size
           , change
-          , keyDown
+          , inputRef
           } = this.props
     const maxLength = expected.length + maxExtraChars
+
+    console.log("inputRef:", inputRef)
 
     return (
       <StyledPhrase
@@ -73,11 +86,12 @@ export class Answer extends Component {
             className="input"
             error={error}
             correct={correct}
+            requireSubmit={requireSubmit}
             maxLength={maxLength}
             value={input}
             onChange={change}
-            onKeyDown={keyDown}
             spellCheck={false}
+            ref={inputRef}
           />
 
           <Feedback
@@ -149,4 +163,25 @@ export const Flip = (props) =>  (
   >
     {props.children}
   </StyledFlip>
+)
+
+
+export const Toggle = props => (
+  <StyledToggle>
+    Require Submit
+    <input type="checkbox"
+      onChange={props.setMode}
+      checked={props.checked}
+    />
+  </StyledToggle>
+)
+
+
+export const Submit = props => (
+  <StyledSubmit
+    onMouseDown={props.submit}
+    visible={props.checked}
+  >
+    Submit
+  </StyledSubmit>
 )

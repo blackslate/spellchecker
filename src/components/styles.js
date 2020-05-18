@@ -65,11 +65,13 @@ export const StyledInput = styled.input.attrs(props => ({
   padding: 0;
   border: none;
 
-  background-color: ${props => props.error
-                             ? colors.error
-                             : props.correct
-                               ? colors.correct
-                               : colors.normal
+  background-color: ${props => props.requireSubmit
+                             ? colors.normal
+                             : props.error
+                               ? colors.error
+                               : props.correct
+                                 ? colors.correct
+                                 : colors.normal
                      };
   &::selection {
     background-color: ${props => props.error
@@ -154,4 +156,17 @@ export const StyledFlip = styled.span`
            ? `background-color: ${colors.spaceHighlight};`
            : ""
    }
+`
+
+
+export const StyledToggle = styled.label`
+  line-height: 2em;
+`
+
+
+export const StyledSubmit = styled.button`
+  display: ${props => props.visible
+                    ? "inline-block;"
+                    : "none;"
+            }
 `

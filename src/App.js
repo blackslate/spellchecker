@@ -18,9 +18,13 @@ class App extends Component {
 
     this.newPhrase    = this.newPhrase.bind(this)
     this.checkSize    = this.checkSize.bind(this)
-    this.onKeyDown    = this.onKeyDown.bind(this)
+    // this.onKeyDown    = this.onKeyDown.bind(this)
     this.updateInput  = this.updateInput.bind(this)
     this.refreshInput = this.refreshInput.bind(this)
+    this.setMode      = this.setMode.bind(this)
+    this.submit       = this.submit.bind(this)
+
+    this.inputRef = React.createRef()
 
     // regex will match the first group of words that are linked
     // together_with_underscores or which form a sequence of words _all
@@ -74,6 +78,7 @@ class App extends Component {
     , fromNewPhrase: true
     , input: ""
     , width: 0
+    , requireSubmit: false
     }
     // console.log( "\""
     //            + start
@@ -92,9 +97,9 @@ class App extends Component {
   }
 
 
-  onKeyDown(event) {
-    this.input = event.target.value
-  }
+  // onKeyDown(event) {
+  //   this.input = event.target.value
+  // }
 
 
   updateInput(event) {
@@ -102,10 +107,15 @@ class App extends Component {
 
     this.setState({ input })
 
-    clearTimeout(this.timeout)
-    this.timeout = setTimeout(this.refreshInput, this.lastIndexDelay)
+    if (this.state.requireSubmit) {
+      this.prepareToSubmit(input)
 
-    this.treatInput(input, true)
+    } else {
+      clearTimeout(this.timeout)
+      this.timeout = setTimeout(this.refreshInput, this.lastIndexDelay)
+
+      this.treatInput(input, true)
+    }
   }
 
 
@@ -121,6 +131,7 @@ class App extends Component {
 
     let error = false
     let correct = false
+    let onlyLastCharIsMissing = false
     let expectedOutput = [this.state.expected.toLowerCase()
                                              .replace(/ /g, " ")
                          ]
@@ -306,6 +317,7 @@ class App extends Component {
     // console.log("received flattened:", receivedOutput)
 
     const lastIndex = receivedOutput.length - ignoreLastIndex
+    const typeIndex = receivedOutput.length - 1
     let cloze = []
 
     receivedOutput.forEach((chunk, index) => {
@@ -328,6 +340,9 @@ class App extends Component {
 
       } else if (!chunk) {
         if (expected && index !== lastIndex) {
+          if (cloze.length === 1 && index === typeIndex) {
+            onlyLastCharIsMissing = true
+          }
           cloze.push(<Add
             key={key}
             has_space={hasSpace}
@@ -349,9 +364,9 @@ class App extends Component {
 
     if (cloze.length === 1) {
       if (input.length === this.state.expected.length) {
-        correct = true
+        correct = !this.state.requireSubmit
       }
-    } else if (cloze.length) {
+    } else if (cloze.length && !onlyLastCharIsMissing) {
       error = true
     }
 
@@ -359,9 +374,14 @@ class App extends Component {
       cloze = [this.zeroWidthSpace]
     }
 
-    console.log(cloze.map(item => JSON.stringify(item.props)))
+    // console.log(cloze.map(item => JSON.stringify(item.props)))
 
     this.setState({ cloze, error, correct })
+  }
+
+
+  prepareToSubmit(input) {
+    this.setState({ cloze: input || this.zeroWidthSpace })
   }
 
 
@@ -410,19 +430,42 @@ class App extends Component {
   }
 
 
+  setMode() {
+    const requireSubmit = !this.state.requireSubmit
+    this.setState({ requireSubmit })
+
+    if (requireSubmit) {
+      this.setState({ cloze: this.state.input })
+    } else {
+      setTimeout(this.refreshInput, 0)
+    }
+
+    this.inputRef.current.focus()
+  }
+
+
+  submit() {
+
+  }
+
+
   render() {
+    console.log("this.inputRef:", this.inputRef)
     return (
       <div id="spellcheck">
         <h1>Spellcheck Test</h1>
         <TargetPhrase
           newPhrase={this.newPhrase}
           phrase={this.state.phrase}
+          setMode={this.setMode}
+          submit={this.submit}
+          checked={this.state.requireSubmit}
         />
         <Answer
           phrase={this.state}
           size={this.checkSize}
           change={this.updateInput}
-          keyDown={this.onKeyDown}
+          inputRef={this.inputRef}
         />
       </div>
     )
@@ -431,3 +474,6 @@ class App extends Component {
 
 
 export default App;
+
+
+          // keyDown={this.onKeyDown}
