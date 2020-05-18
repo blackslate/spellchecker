@@ -3,6 +3,7 @@
  */
 
 
+
 import React, { Component } from 'react';
 import { StyledDiv
        , StyledTextArea
@@ -16,6 +17,10 @@ import { StyledDiv
        , StyledFlip
        } from './styles'
 
+
+/// <<< HARD-CODED
+const maxExtraChars = 2
+/// HARD-CODED >>>
 
 
 export const TargetPhrase = (props) => (
@@ -37,7 +42,8 @@ export class Answer extends Component {
       return ""
     }
 
-    const { start
+    const { expected
+          , start
           , cloze
           , end
           , input
@@ -50,6 +56,7 @@ export class Answer extends Component {
           , change
           , keyDown
           } = this.props
+    const maxLength = expected.length + maxExtraChars
 
     return (
       <StyledPhrase
@@ -66,6 +73,7 @@ export class Answer extends Component {
             className="input"
             error={error}
             correct={correct}
+            maxLength={maxLength}
             value={input}
             onChange={change}
             onKeyDown={keyDown}

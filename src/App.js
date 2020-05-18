@@ -279,14 +279,14 @@ class App extends Component {
     expectedOutput = flatten(expectedOutput)
     receivedOutput = flatten(receivedOutput)
 
-    console.log("ex",expectedOutput)
-    console.log("in",receivedOutput)
+    // console.log("ex",expectedOutput)
+    // console.log("in",receivedOutput)
 
     // restoreCase(expectedOutput, this.state.expected)
     restoreCase(receivedOutput, input)
 
     // console.log("expected flattened:", expectedOutput)
-    console.log("received flattened:", receivedOutput)
+    // console.log("received flattened:", receivedOutput)
 
     const lastIndex = receivedOutput.length - 1
     let cloze = []
