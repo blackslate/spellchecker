@@ -26,7 +26,8 @@ class App extends Component {
     // _with _a _leading _underscore. Trailing _underscores_ will be
     // included in the match. Subsequent underscores will be silently
     // ignored and removed or replaced by spaces.
-    this.regex  = /(.*?)((\w+(?=_))?(_([^\s,;:.?!]*))+)(.*)/
+    this.regex  = /(.*?)((?:\w+(?=_))?(?:_(?:[^\s,;:.?!]*))+)(.*)/
+    this.zeroWidthSpace = "​" // "&#x200b;"
 
     const startUp      = true
     const phrase       = "Hello _world" //"Я сказал «_Здравствуйте!»"
@@ -52,19 +53,20 @@ class App extends Component {
     match.shift() // lose the full match
     // console.log("match:", match)
 
-    const start    = match.shift()// spaces will be between spans
-    const end      = match.pop().replace(/[_\s]+/g, " ").trim()
-    const expected = match.shift()
+    let start   = match.shift().trim()
+    if (start) {
+      start += " "
+    }
+    const end   = match.pop().replace(/[_\s]+/g, " ").trimRight()
+    const cloze = match.shift()
                           .replace(/[_\s]+/g, " ") // << nbsp
                           .trim()
-    const cloze = "" // <span>{expected}</span>
     const data = {
       phrase
+    , expected: cloze
     , start
     , cloze
     , end
-    , expected
-    , textToCheck: expected
     , fromNewPhrase: true
     , input: ""
     , width: 0
@@ -94,10 +96,7 @@ class App extends Component {
   updateInput(event) {
     const input = event.target.value
 
-    this.setState({
-      input
-    , textToCheck: input
-    })
+    this.setState({ input })
 
     this.treatInput(input)
   }
@@ -106,6 +105,9 @@ class App extends Component {
   treatInput(input) {
     // console.log("treat input:", input)
     // console.log("t่his.state:", this.state)
+
+    let error = false
+    let correct = false
     let expectedOutput = [this.state.expected.toLowerCase()
                                              .replace(/ /g, " ")
                          ]
@@ -117,7 +119,7 @@ class App extends Component {
     }
 
 
-    const lookForSwaps = (expectedArray, receivedArray, lss) => {
+    const lookForSwaps = (expectedArray, receivedArray, lss, error) => {
       const expectedString = expectedArray[0]
       const receivedString = receivedArray[0]
       const eLength = expectedString.length - 1 // -1 so we don't
@@ -145,6 +147,7 @@ class App extends Component {
               // be treated in a subsequent iteration of the while
               // loop below
               dontSplit = true
+              error = true
               break
             }
           }
@@ -154,6 +157,8 @@ class App extends Component {
       if (!dontSplit) {
         splitStrings(expectedArray, receivedArray, lss)
       }
+
+      return error
     }
 
 
@@ -247,7 +252,7 @@ class App extends Component {
       const received = receivedArray[0]
 
       if (!expected || !received) {
-        // Add or cut. Do nothing
+        // Add or cut, or both may be empty
 
       } else {
         const lss = LSS(expected, received)
@@ -257,12 +262,13 @@ class App extends Component {
         switch (lss.length) {
           case 0:
             // There is nothing in common in these strings.
-          break
-          case 1:
-            // There may be more matching letters, but flipped
-            lookForSwaps(expectedArray, receivedArray, lss)
+            error = true
           break
 
+          case 1:
+            // There may be more matching letters, but flipped
+            error=lookForSwaps(expectedArray,receivedArray,lss,error)
+          break
 
           default:
             splitStrings(expectedArray, receivedArray, lss)
@@ -273,14 +279,14 @@ class App extends Component {
     expectedOutput = flatten(expectedOutput)
     receivedOutput = flatten(receivedOutput)
 
-    // console.log("ex",expectedOutput)
-    // console.log("in",receivedOutput)
+    console.log("ex",expectedOutput)
+    console.log("in",receivedOutput)
 
     // restoreCase(expectedOutput, this.state.expected)
     restoreCase(receivedOutput, input)
 
     // console.log("expected flattened:", expectedOutput)
-    // console.log("received flattened:", receivedOutput)
+    console.log("received flattened:", receivedOutput)
 
     const lastIndex = receivedOutput.length - 1
     let cloze = []
@@ -320,10 +326,19 @@ class App extends Component {
       }
     })
 
-    cloze.correct = input.length === this.state.expected.length
-                 && cloze.length === 1
+    if (cloze.length === 1) {
+      if (input.length === this.state.expected.length) {
+        correct = true
+      }
+    } else if (cloze.length) {
+      error = true
+    }
 
-    this.setState({ cloze })
+    if (!cloze.length) {
+      cloze = [this.zeroWidthSpace]
+    }
+
+    this.setState({ cloze, error, correct })
   }
 
 
@@ -347,11 +362,11 @@ class App extends Component {
     if (span && !this.span) {
       this.span = span
     }
-    this.setWidth()
+    this.setSize()
   }
 
 
-  setWidth() {
+  setSize() {
     const width = this.span.getBoundingClientRect().width + 1
 
     // console.log("setWidth:", width)
@@ -360,14 +375,13 @@ class App extends Component {
       if (this.state.fromNewPhrase) {
         this.setState({
           width
+        , minWidth: width
+        , cloze: this.zeroWidthSpace
         , fromNewPhrase: false
         })
 
-      } else if (width > this.state.width) {
-        if (this.state.input !== this.input) {
-          this.setState({ input: this.input })
-          this.treatInput(this.input)
-        }
+      } else {
+        this.setState({ width })
       }
     }
   }

@@ -7,8 +7,9 @@ import React, { Component } from 'react';
 import { StyledDiv
        , StyledTextArea
        , StyledPhrase
-       , StyledFeedback
+       , StyledInputDiv
        , StyledInput
+       , StyledFeedback
        , StyledAdd
        , StyledCut
        , StyledFix
@@ -29,86 +30,78 @@ export const TargetPhrase = (props) => (
 )
 
 
-export const Answer = (props) => (
-   <StyledDiv>
-    <Input
-      width={props.phrase.width}
-      start={props.phrase.start}
-      cloze={props.phrase.cloze}
-      end={props.phrase.end}
-      value={props.phrase.input}
-      change={props.change}
-      keyDown={props.keyDown}
-    />
-    <FeedBack
-      start={props.phrase.start}
-      cloze={props.phrase.cloze}
-      end={props.phrase.end}
-      width={props.phrase.width}
-      text={props.phrase.cloze}
-    />
-    <WidthHolder
-      textToCheck={props.phrase.textToCheck}
-      size={props.size}
-    />
-  </StyledDiv>
-)
 
-
-
-export class Input extends Component {
+export class Answer extends Component {
   render() {
-    const error = Array.isArray(this.props.cloze)
-                ? this.props.cloze.length !== 1
-                : false
-    const correct = Array.isArray(this.props.cloze)
-                 && this.props.cloze.correct
-
-    if (!this.props.width) {
+   if (!this.props.phrase.cloze) {
       return ""
     }
 
+    const { start
+          , cloze
+          , end
+          , input
+          , minWidth
+          , width
+          , error
+          , correct
+          } = this.props.phrase
+    const { size
+          , change
+          , keyDown
+          } = this.props
+
     return (
       <StyledPhrase
-        id="back"
+        id="answer"
       >
-        <span>{this.props.start}</span>
-        <StyledInput
-          className="input"
-          error={error}
-          correct={correct}
-          value={this.props.value}
-          width={this.props.width}
-          onChange={this.props.change}
-          onKeyDown={this.props.keyDown}
-        />
-        <span>{this.props.end}</span>
+        <span>{start}</span>
+
+        <StyledInputDiv
+          id="input"
+          minWidth={minWidth}
+          width={width}
+        >
+          <StyledInput
+            className="input"
+            error={error}
+            correct={correct}
+            value={input}
+            onChange={change}
+            onKeyDown={keyDown}
+          />
+
+          <Feedback
+            size={size}
+            cloze={cloze}
+          />
+
+        </StyledInputDiv>
+
+        <span>{end}</span>
       </StyledPhrase>
     )
   }
 }
 
 
-
-export class FeedBack extends Component {
+class Feedback extends Component{
   render() {
-    const { start, text, end, width } = this.props
-
     return (
-      <StyledPhrase
-        id="front"
-        width={width}
+      <StyledFeedback
+        className="cloze"
+        ref={this.props.size}
       >
-        <span>{start}</span>
-        <StyledFeedback
-          className="cloze"
-        >
-          {text}
-        </StyledFeedback>
-        <span>{end}</span>
-      </StyledPhrase>
+        {this.props.cloze}
+      </StyledFeedback>
     )
   }
+
+
+  componentDidUpdate() {
+    this.props.size()
+  }
+
 }
 
 
@@ -140,27 +133,3 @@ export const Flip = (props) =>  (
     {props.children}
   </StyledFlip>
 )
-
-
-
-class WidthHolder extends Component {
-  render() {
-    const { size, textToCheck } = this.props
-    // console.log(("expected:", expected))
-
-    return (
-      <StyledFeedback
-        className="width-holder"
-        ref={size}
-        hidden={true}
-      >
-        {textToCheck}
-      </StyledFeedback>
-    )
-  }
-
-
-  componentDidUpdate() {
-    this.props.size()
-  }
-}
