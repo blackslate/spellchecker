@@ -7,7 +7,7 @@ const colors = {
   normal:  "#ddf"
 , error:   "#fee"
 , correct: "#dfd"
-, spaceHighlight:   "#fff"
+, spaceHighlight:   "rgba(192,192,192, 0.5)"
 , normalHighlight:  "#ccf"
 , errorHighlight:   "#fcc"
 , correctHighlight: "#9c9"

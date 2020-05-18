@@ -77,6 +77,7 @@ export class Answer extends Component {
             value={input}
             onChange={change}
             onKeyDown={keyDown}
+            spellCheck={false}
           />
 
           <Feedback
