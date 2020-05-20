@@ -4,9 +4,10 @@ import styled from 'styled-components'
 const fontSize = "7vmin"
 const fontFamily = "'DejaVu serif', Cambria, serif"
 const colors = {
-  normal:  "#ddf"
-, error:   "#fee"
-, correct: "#dfd"
+  normal: "#000"
+, normalBG:  "#ddf"
+, errorBG:   "#fee"
+, correctBG: "#dfd"
 , spaceHighlight:   "rgba(192,192,192, 0.5)"
 , normalHighlight:  "#ccf"
 , errorHighlight:   "#fcc"
@@ -50,9 +51,11 @@ export const StyledInputDiv = styled.div`
 // The text input element will expand to fill its parent div, which
 // will in turn expand to fit the width of the expected span (at a
 // minimum), or the Feedback span (whichever is greater).
-export const StyledInput = styled.input.attrs(props => ({
-  type: "text"
-}))`
+export const StyledInput = styled.input.attrs(props => {
+  return {
+    type: "text"
+  }
+})`
   font-size: ${fontSize};
   font-family: ${fontFamily};
   position: absolute;
@@ -65,13 +68,11 @@ export const StyledInput = styled.input.attrs(props => ({
   padding: 0;
   border: none;
 
-  background-color: ${props => props.requireSubmit
-                             ? colors.normal
-                             : props.error
-                               ? colors.error
-                               : props.correct
-                                 ? colors.correct
-                                 : colors.normal
+  background-color: ${props => props.error
+                             ? colors.errorBG
+                             : props.correct
+                               ? colors.correctBG
+                               : colors.normalBG
                      };
   &::selection {
     background-color: ${props => props.error
@@ -94,11 +95,23 @@ export const StyledFeedback = styled.span`
   display: inline-block;
   white-space: pre;
 
+  ${props => props.fix
+           ? "opacity: 0.325;"
+           : ""
+   }
+
   /* Let input element behind show its cursor and receive mouse and
    * touch events
    */
   background: transparent;
   pointer-events: none;
+
+  & span {
+    ${props => props.reveal
+             ? `color: ${colors.normal};`
+             : ""
+     }
+  }
 `
 
 

@@ -16,9 +16,12 @@ class App extends Component {
   constructor(props) {
     super(props)
 
+    /// <<< HARD-CODED
+    this.maxExtraChars = 2
+    /// HARD-CODED >>>
+
     this.newPhrase    = this.newPhrase.bind(this)
     this.checkSize    = this.checkSize.bind(this)
-    // this.onKeyDown    = this.onKeyDown.bind(this)
     this.updateInput  = this.updateInput.bind(this)
     this.refreshInput = this.refreshInput.bind(this)
     this.setMode      = this.setMode.bind(this)
@@ -97,13 +100,8 @@ class App extends Component {
   }
 
 
-  // onKeyDown(event) {
-  //   this.input = event.target.value
-  // }
-
-
   updateInput(event) {
-    const input = event.target.value
+    const input = event.target.value.replace(this.zeroWidthSpace, "")
 
     this.setState({ input })
 
@@ -120,7 +118,6 @@ class App extends Component {
 
 
   refreshInput() {
-    console.log("refresh input")
     this.treatInput(this.state.input, false)
   }
 
@@ -252,15 +249,14 @@ class App extends Component {
     }
 
 
-    const treatFix = (received, expected, key, cloze, hasSpace) => {
-
-      if ( expected[0] === received[1]
-        && expected[1] === received[0]
+    const treatFix = (display, compare, key, cloze, hasSpace) => {
+      if ( compare[0] === display[1]
+        && compare[1] === display[0]
          ) {
         cloze.push(<Flip
           key={key}
           has_space={hasSpace}
-        >{received}</Flip>)
+        >{display}</Flip>)
 
         return
       }
@@ -268,8 +264,88 @@ class App extends Component {
       cloze.push(<Fix
         key={key}
         has_space={hasSpace}
-      >{received}</Fix>)
+      >{display}</Fix>)
+    }
 
+
+    const getClozeFromReceivedOutput = () => {
+      const cloze = []
+
+      receivedOutput.forEach((received, index) => {
+        const key = index + received
+        const expected = expectedOutput[index]
+        const hasSpace = (received !== received.replace(/ /g, "")) + 0
+
+        if (received.toLowerCase() === expected) {
+          if (received) { // ignore empty items
+            cloze.push(<span
+              key={key}
+            >{received}</span>)
+          }
+
+        // } else if (received.flip) {
+        //   cloze.push(<Flip
+        //     key={key}
+        //     has_space={hasSpace}
+        //   >{received}</Flip>)
+
+        } else if (!received) {
+          if (expected && index !== lastIndex) {
+            if (cloze.length === 1 && index === typeIndex) {
+              onlyLastCharIsMissing = true
+            }
+            cloze.push(<Add
+              key={key}
+              has_space={hasSpace}
+            />)
+          } // else both input and expected are "", for the last item
+          // TODO: Set a timeout so that index !== lastIndex is ignored
+          // if you stop typing before you reach the end.
+
+        } else if (!expected) {
+          cloze.push(<Cut
+            key={key}
+            has_space={hasSpace}
+          >{received}</Cut>)
+
+        } else {
+          treatFix(received, expected, key, cloze, hasSpace)
+        }
+      })
+
+      return cloze
+    }
+
+
+    const getClozeFromExpectedOutput = () => {
+      const cloze = []
+
+      expectedOutput.forEach((expected, index) => {
+        const key = index + expected
+        const received = receivedOutput[index]
+        const hasSpace = (expected !== expected.replace(/ /g, "")) + 0
+
+        if (expected.toLowerCase() === received) {
+          if (expected) { // ignore empty items
+            cloze.push(<span
+              key={key}
+            >{expected}</span>)
+          }
+
+        } else if (expected) {
+          if (!received) {
+            cloze.push(<Cut
+              key={key}
+              has_space={hasSpace}
+            >{expected}</Cut>)
+
+          } else {
+            treatFix(expected, received, key, cloze, hasSpace)
+          }
+        }
+      })
+
+      return cloze
     }
 
 
@@ -318,53 +394,17 @@ class App extends Component {
 
     const lastIndex = receivedOutput.length - ignoreLastIndex
     const typeIndex = receivedOutput.length - 1
-    let cloze = []
 
-    receivedOutput.forEach((chunk, index) => {
-      const key = index + chunk
-      const expected = expectedOutput[index]
-      const hasSpace = (chunk !== chunk.replace(/ /g, "")) + 0
-
-      if (chunk.toLowerCase() === expected) {
-        if (chunk) { // ignore empty items
-          cloze.push(<span
-            key={key}
-          >{chunk}</span>)
-        }
-
-      } else if (chunk.flip) {
-        cloze.push(<Flip
-          key={key}
-          has_space={hasSpace}
-        >{chunk}</Flip>)
-
-      } else if (!chunk) {
-        if (expected && index !== lastIndex) {
-          if (cloze.length === 1 && index === typeIndex) {
-            onlyLastCharIsMissing = true
-          }
-          cloze.push(<Add
-            key={key}
-            has_space={hasSpace}
-          />)
-        } // else both input and expected are "", for the last item
-        // TODO: Set a timeout so that index !== lastIndex is ignored
-        // if you stop typing before you reach the end.
-
-      } else if (!expected) {
-        cloze.push(<Cut
-          key={key}
-          has_space={hasSpace}
-        >{chunk}</Cut>)
-
-      } else {
-        treatFix(chunk, expected, key, cloze, hasSpace)
-      }
-    })
+    let cloze
+    if (this.state.requireSubmit) {
+      cloze = getClozeFromExpectedOutput()
+    } else {
+      cloze = getClozeFromReceivedOutput()
+    }
 
     if (cloze.length === 1) {
       if (input.length === this.state.expected.length) {
-        correct = !this.state.requireSubmit
+        correct = true // !this.state.requireSubmit
       }
     } else if (cloze.length && !onlyLastCharIsMissing) {
       error = true
@@ -376,12 +416,21 @@ class App extends Component {
 
     // console.log(cloze.map(item => JSON.stringify(item.props)))
 
-    this.setState({ cloze, error, correct })
+
+    const maxLength = this.state.expected.length + this.maxExtraChars
+    const reveal = this.state.requireSubmit && !input
+    const fix = (this.state.requireSubmit && error) || reveal
+
+    this.setState({ cloze, error, correct, maxLength, reveal, fix })
   }
 
 
   prepareToSubmit(input) {
-    this.setState({ cloze: input || this.zeroWidthSpace })
+    this.setState({
+      cloze: input || this.zeroWidthSpace
+    , error: false
+    , correct: false
+    })
   }
 
 
@@ -404,6 +453,7 @@ class App extends Component {
   checkSize(span){
     if (span && !this.span) {
       this.span = span
+      this.inputRef.current.focus()
     }
     this.setSize()
   }
@@ -435,7 +485,7 @@ class App extends Component {
     this.setState({ requireSubmit })
 
     if (requireSubmit) {
-      this.setState({ cloze: this.state.input })
+      this.setState({ cloze: this.state.input || this.zeroWidthSpace })
     } else {
       setTimeout(this.refreshInput, 0)
     }
@@ -445,12 +495,12 @@ class App extends Component {
 
 
   submit() {
-
+    this.refreshInput()
+    this.setState({ input: "" })
   }
 
 
   render() {
-    console.log("this.inputRef:", this.inputRef)
     return (
       <div id="spellcheck">
         <h1>Spellcheck Test</h1>
@@ -474,6 +524,3 @@ class App extends Component {
 
 
 export default App;
-
-
-          // keyDown={this.onKeyDown}

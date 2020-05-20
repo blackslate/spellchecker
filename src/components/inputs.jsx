@@ -20,10 +20,6 @@ import { StyledDiv
        } from './styles'
 
 
-/// <<< HARD-CODED
-const maxExtraChars = 2
-/// HARD-CODED >>>
-
 
 export const TargetPhrase = (props) => (
   <StyledDiv>
@@ -33,11 +29,11 @@ export const TargetPhrase = (props) => (
       onChange={props.newPhrase}
       value={props.phrase}
     />
-    <Toggle 
+    <Toggle
       setMode={props.setMode}
       checked={props.checked}
     />
-    <Submit   
+    <Submit
       submit={props.submit}
       checked={props.checked}
     />
@@ -61,15 +57,15 @@ export class Answer extends Component {
           , width
           , error
           , correct
+          , maxLength
           , requireSubmit
+          , reveal
+          , fix
           } = this.props.phrase
     const { size
           , change
           , inputRef
           } = this.props
-    const maxLength = expected.length + maxExtraChars
-
-    console.log("inputRef:", inputRef)
 
     return (
       <StyledPhrase
@@ -97,6 +93,8 @@ export class Answer extends Component {
           <Feedback
             size={size}
             cloze={cloze}
+            fix={fix}
+            reveal={reveal}
           />
 
         </StyledInputDiv>
@@ -110,12 +108,14 @@ export class Answer extends Component {
 
 class Feedback extends Component{
   render() {
-    const { size, has_space, cloze } = this.props
-    // console.log(size, has_space, cloze)
+    const { size, cloze, fix, reveal } = this.props
+
     return (
       <StyledFeedback
         className="cloze"
         ref={size}
+        fix={fix}
+        reveal={reveal}
       >
         {cloze}
       </StyledFeedback>

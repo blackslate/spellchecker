@@ -251,3 +251,17 @@ Alternatively, we could extend the Input field if the data entered is too big, b
 
 
 We calculate an initial value for cloze and refresh the Feedback element with this value, and obtain its width as this.state.minWidth. Then we set cloze to a span with only &nbsp; and calculate its width as this.state.width
+
+
+For the requireSubmit feature, we need to take expected and create spans wherever there is an error in the input. The input field is cleared. When you start to type, the Feedback fades quickly away, but it returns after a pause if your spelling so far is correct. When it returns it is all green, showing no previous errors.
+
+
+
+* Show [Reveal] button
+* When you start typing, show [Submit] button
+* When you press the button:
+  - Play the missing word
+  - Show the missing word with your errors
+  - Hide the [Submit] button and show [Listen] instead
+* When you start typing again, hide [Listen] and show [Submit]
+* If you got the answer right, play audio, then move to the next slide.
