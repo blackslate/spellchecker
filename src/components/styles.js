@@ -9,6 +9,9 @@ const colors = {
 , errorBG:   "#fee"
 , correctBG: "#dfd"
 , spaceHighlight:   "rgba(192,192,192, 0.5)"
+, normalOutline:  "#99c"
+, errorOutline:   "#966"
+, correctOutline: "#696"
 , normalHighlight:  "#ccf"
 , errorHighlight:   "#fcc"
 , correctHighlight: "#9c9"
@@ -47,7 +50,6 @@ export const StyledInputDiv = styled.div`
   width: ${props => props.width}px;
 `
 
-
 // The text input element will expand to fill its parent div, which
 // will in turn expand to fit the width of the expected span (at a
 // minimum), or the Feedback span (whichever is greater).
@@ -74,6 +76,14 @@ export const StyledInput = styled.input.attrs(props => {
                                ? colors.correctBG
                                : colors.normalBG
                      };
+
+  outline-color: ${props => props.error
+                             ? colors.errorOutline
+                             : props.correct
+                               ? colors.correctOutline
+                               : colors.normalOutline
+                     };
+
   &::selection {
     background-color: ${props => props.error
                                ? colors.errorHighlight
@@ -83,7 +93,6 @@ export const StyledInput = styled.input.attrs(props => {
                        };
   }
 `
-
 
 // The feedback span will show the same text as the input element,
 // but divided into different spans according to the error type
@@ -113,7 +122,6 @@ export const StyledFeedback = styled.span`
      }
   }
 `
-
 
 // A zero-width span with no text, to show where one or more letters
 // are missing. It appears as: |

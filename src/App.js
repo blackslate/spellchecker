@@ -404,7 +404,7 @@ class App extends Component {
 
     if (cloze.length === 1) {
       if (input.length === this.state.expected.length) {
-        correct = true // !this.state.requireSubmit
+        correct = true
       }
     } else if (cloze.length && !onlyLastCharIsMissing) {
       error = true
