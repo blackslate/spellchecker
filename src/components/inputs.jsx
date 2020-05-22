@@ -48,8 +48,7 @@ export class Answer extends Component {
       return ""
     }
 
-    const { expected
-          , start
+    const { start
           , cloze
           , end
           , input

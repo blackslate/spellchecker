@@ -33,15 +33,16 @@ class App extends Component {
     // together_with_underscores or which form a sequence of words _all
     // _with _a _leading _underscore. Trailing _underscores_ will be
     // included in the match. Subsequent underscores will be silently
-    // ignored and removed or replaced by spaces.
-    this.regex  = /(.*?)((?:\w+(?=_))?(?:_(?:[^\s,;:.?!]*))+)(.*)/
+    // ignored and removed or replaced by spaces. If no underscores
+    // are present, the final .* will ensure there is a match.
+    this.regex  = /(.*?)((?:\w+(?=_))?(?:_(?:[^\s,;:.?!]*))+)(.*)|.*/
 
     this.zeroWidthSpace = "​" // "&#x200b;"
     this.timeout        = 0
     this.lastIndexDelay = 1000
 
     const startUp       = true
-    const phrase        = "Here's a_word_that_you can test"
+    const phrase        = "Here"
     const initialState  = this.treatPhrase(phrase, startUp)
     this.state          = initialState
   }
@@ -56,22 +57,23 @@ class App extends Component {
 
   treatPhrase(phrase, startUp) {
     const match  = this.regex.exec(phrase)
-    if (!match) {
-      // There are no _underscored words yet
-      return
-    }
 
-    match.shift() // lose the full match
-    // console.log("match:", match)
-
-    let start   = match.shift().trim()
+    let start = match[1]
     if (start) {
-      start += " "
+      start = start.trim() + " "
+    } else {
+      start = ""
     }
-    const end   = match.pop().replace(/[_\s]+/g, " ").trimRight()
-    const cloze = match.shift()
-                          .replace(/[_\s]+/g, " ") // << nbsp
-                          .trim()
+
+    let cloze = match[2]
+    if (cloze) {
+      cloze = cloze.replace(/[_\s]+/g, " ") // << nbsp
+                   .trim() || " "
+    } else { // There are no underscores. Use the entire string.
+      cloze = match[0].trim()
+    }
+
+    const end = (match[3] || "").replace(/[_\s]+/g, " ").trimRight()
     const data = {
       phrase
     , expected: cloze
